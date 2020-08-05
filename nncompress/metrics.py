@@ -1,7 +1,7 @@
 from tensorboardX import SummaryWriter
 import torch
 
-writer = SummaryWriter("logs/")
+writer = SummaryWriter("logs/", flush_secs=5)
 
 
 def report(step, loss, epoch, inp, out, pred):

@@ -8,7 +8,7 @@
     "bidirectional": true
   },
   "learning_rate": 0.01,
-  "current_step": 2100,
+  "current_step": 3700,
   "log_step": 1,
   "save_step": 100,
   "keep_max": 1,

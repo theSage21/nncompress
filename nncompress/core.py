@@ -1,4 +1,5 @@
 from nncompress.model import Compressor
+import random
 from nncompress.metrics import report
 from tqdm import tqdm
 import json
@@ -32,10 +33,28 @@ def compress(args):
         with open(args.config, "w") as fl:
             fl.write(json.dumps(cfg, indent=2))
 
-    def data_generator():
+    def data_generator(with_cache):
         """
         Yield input/output batches
         """
+        if with_cache:
+            idxes = list(with_cache.keys())
+            random.shuffle(idxes)
+            I, O = [], []
+            for i in idxes:
+                inp, out = with_cache[i]
+                I.append(inp)
+                O.append(out)
+                if len(I) >= batchsize:
+                    I, O = torch.stack(I), torch.stack(O)
+                    for _ in repetitions:
+                        yield I, O
+                    I, O = [], []
+            if I:
+                I, O = torch.stack(I), torch.stack(O)
+                for _ in repetitions:
+                    yield I, O
+            return
         fname = args.fname
         chunksize = cfg.get("chunksize", 512)
         batchsize = cfg.get("batchsize", 32)
@@ -43,7 +62,8 @@ def compress(args):
         symbol = {"0": 0, "1": 1, "START": 2, "END": 3}
         I, O = [], []
         seqlen = chunksize * 8
-        last_bits = torch.Tensor([symbol["START"]] * seqlen)
+        last_bits = torch.Tensor([symbol["START"]] * seqlen).long()
+        rowid = 0
         with open(fname, "rb") as fl:
             while True:
                 chunk = fl.read(chunksize)
@@ -53,26 +73,31 @@ def compress(args):
                     else torch.Tensor(
                         [symbol[i] for bt in chunk for i in format(bt, "b").zfill(8)]
                     )
-                )
-                I.append(last_bits.long())
-                O.append(bits.long())
+                ).long()
+                with_cache[rowid] = (last_bits, bits)
+                rowid += 1
+                I.append(last_bits)
+                O.append(bits)
                 last_bits = bits
                 if len(chunk) < chunksize:
                     break
                 if len(I) >= batchsize:
+                    I, O = torch.stack(I), torch.stack(O)
                     for _ in repetitions:
-                        yield torch.stack(I), torch.stack(O)
+                        yield I, O
                     I, O = [], []
-        if i:
+        if I:
+            I, O = torch.stack(I), torch.stack(O)
             for _ in repetitions:
-                yield torch.stack(I), torch.stack(O)
+                yield I, O
 
     # Train
     epoch = 0
+    with_cache = {}
     while True:
         # TODO: refresh config each epoch to pick up changes
         with tqdm(desc="Starting") as pbar:
-            for inp, out in data_generator():
+            for inp, out in data_generator(with_cache):
                 opt.zero_grad()
                 p = net(inp)
                 B, L, D = p.shape
@@ -88,3 +113,4 @@ def compress(args):
                 pbar.set_description(f"Loss: {loss}")
                 pbar.update(1)
         epoch += 1
+        print("\n")

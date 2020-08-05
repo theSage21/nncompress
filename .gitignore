@@ -1,6 +1,8 @@
 workspace/
 logs/
 runs/
+savepoints/
+*mkv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
