@@ -1,6 +1,6 @@
 {
     "nn_kwargs": {
-        "embed_dim": 50,
+        "embed_dim": 512,
         "hid_size": 50,
         "dropout": 0.3,
         "n_classes": 4,
@@ -11,5 +11,8 @@
     "current_step": 0,
     "log_step": 100,
     "save_step": 100,
-    "keep_max": 1
+    "keep_max": 1,
+    "chunksize": 100,
+    "batchsize": 32,
+    "repetitions": 5
 }

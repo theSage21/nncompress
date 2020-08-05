@@ -31,7 +31,7 @@ def compress(args):
         fname = args.fname
         chunksize = cfg.get("chunksize", 512)
         batchsize = cfg.get("batchsize", 32)
-        repetitions = cfg.get("repetitions", [None] * 5)
+        repetitions = [None] * cfg.get("repetitions", 5)
         symbol = {"0": 0, "1": 1, "START": 2, "END": 3}
         I, O = [], []
         seqlen = chunksize * 8
