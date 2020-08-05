@@ -9,6 +9,11 @@ import os
 def compress(args):
     with open(args.config, "r") as fl:
         cfg = json.loads(fl.read())
+    for d in "savepoints logs workspace".split():
+        try:
+            os.mkdir(d)
+        except OSError:
+            pass
     net = Compressor(**cfg["nn_kwargs"])
     loss_fn = torch.nn.CrossEntropyLoss()
     opt = torch.optim.Adam(net.parameters(), lr=cfg["learning_rate"])
@@ -22,7 +27,10 @@ def compress(args):
         path = f"{wk}/model.{step}"
         torch.save(net.state_dict(), path)
         if len(known) + 1 > cfg["keep_max"]:
-            os.remove(known[0])
+            os.remove(f"{wk}/{known[0]}")
+        cfg["current_step"] = step
+        with open(args.config, "w") as fl:
+            fl.write(json.dumps(cfg, indent=2))
 
     def data_generator():
         """
@@ -73,7 +81,7 @@ def compress(args):
                 loss.backward()
                 opt.step()
                 if step % cfg["log_step"] == 0:
-                    report(step, loss, epoch)
+                    report(step, loss, epoch, inp, out, p)
                 if step % cfg["save_step"] == 0:
                     save()
                 step += 1

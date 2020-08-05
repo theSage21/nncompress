@@ -1,18 +1,18 @@
 {
-    "nn_kwargs": {
-        "embed_dim": 512,
-        "hid_size": 50,
-        "dropout": 0.3,
-        "n_classes": 4,
-        "n_layers": 3,
-        "bidirectional": true
-    },
-    "learning_rate": 0.01,
-    "current_step": 0,
-    "log_step": 100,
-    "save_step": 100,
-    "keep_max": 1,
-    "chunksize": 100,
-    "batchsize": 32,
-    "repetitions": 5
+  "nn_kwargs": {
+    "embed_dim": 15,
+    "hid_size": 15,
+    "dropout": 0.0,
+    "n_classes": 4,
+    "n_layers": 1,
+    "bidirectional": true
+  },
+  "learning_rate": 0.01,
+  "current_step": 2100,
+  "log_step": 1,
+  "save_step": 100,
+  "keep_max": 1,
+  "chunksize": 100,
+  "batchsize": 32,
+  "repetitions": 100
 }
